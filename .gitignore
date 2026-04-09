@@ -1,0 +1,57 @@
+## --- Compilação e Binários ---
+[Bb]in/
+[Oo]bj/
+[Aa]rm/
+[Aa]rm64/
+[Xx]64/
+[Xx]86/
+
+## --- Visual Studio ---
+.vs/
+*.user
+*.userosscache
+*.sln.docstates
+*.suo
+*.userprefs
+
+## --- Visual Studio Code ---
+.vscode/
+
+## --- NuGet ---
+
+packages/
+*.nupkg
+!packages/repositories.config
+
+## --- Resultados de Testes e Cobertura ---
+TestResults/
+*.trx
+*.coverage
+*.coveragexml
+*.mshc
+
+## --- Publicação e Artefatos ---
+publish/
+*.pfx
+*.publishsettings
+
+## --- Arquivos de Configuração Sensíveis (Segurança) ---
+
+appsettings.Development.json
+secrets.json
+*.env
+*.dev.env
+
+## --- Logs ---
+*.log
+log/
+logs/
+
+## --- Sistema Operacional ---
+.DS_Store
+Thumbs.db
+desktop.ini
+
+## --- Outros ---
+.cache/
+.ionide/
