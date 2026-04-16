@@ -1,4 +1,5 @@
-﻿class Program
+﻿using GeradorDeLabirintos.Algorithms;
+class Program
 {
     public static void Main(String[] args)
     {
@@ -16,6 +17,12 @@
 
         Console.WriteLine($"Gerando labirinto do tipo '{tipoAlgoritmo}' com tamanho {largura}x{altura}...");
 
+        if (tipoAlgoritmo.Equals("a"))
+        {
+            MazeGenerator teste = new MazeGenerator(largura, altura);
+            teste.Generate();
+            teste.Display();
+        }
         //Lógicas de chamadas para recursive ou autômato celular 
         
     }
