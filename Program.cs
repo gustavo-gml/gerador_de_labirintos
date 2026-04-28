@@ -1,4 +1,6 @@
-﻿class Program
+﻿using GeradorDeLabirintos.Algorithms;
+
+class Program
 {
     public static void Main(String[] args)
     {
@@ -15,6 +17,18 @@
         int altura = int.Parse(args[2]);
 
         Console.WriteLine($"Gerando labirinto do tipo '{tipoAlgoritmo}' com tamanho {largura}x{altura}...");
+
+        if(tipoAlgoritmo.ToLower() == "caverna")
+        {
+            CaveGenerator gerador = new CaveGenerator();
+            gerador.Gerar(largura, altura);
+        }
+        else
+        {
+            Console.WriteLine("Tipo desconhecido");
+        }
+
+
 
         //Lógicas de chamadas para recursive ou autômato celular 
         
