@@ -14,7 +14,7 @@ namespace GeradorDeLabirintos.Algorithms
             {
                 for (int j = 0; j < largura; j++)
                 {
-                    caverna[i, j] = (rand.Next(100) < 55) ? 0 : 1;
+                    caverna[i, j] = (rand.Next(100) < 60) ? 0 : 1;
                 }
             }
 
@@ -31,15 +31,31 @@ namespace GeradorDeLabirintos.Algorithms
             {
                 caverna = AplicarAutomato(caverna, altura, largura);
             }
-            Console.WriteLine("Mapa Final\n");
+
+            // definir entrada e saída
+            Posicao entrada = new Posicao(1, 1);
+            Posicao saida = new Posicao(altura - 2, largura - 2);
+
+            // garantir que são caminhos
+            caverna[entrada.Linha, entrada.Coluna] = 1;
+            caverna[saida.Linha, saida.Coluna] = 1;
+
+            Console.WriteLine("Mapa Final\n"); // Mostrando a caverna em sua versão final
             for (int i = 0; i < altura; i++)
             {
                 for (int j = 0; j < largura; j++)
                 {
-                    Console.Write(caverna[i, j] == 0 ? '#' : '.');
+                    if (i == entrada.Linha && j == entrada.Coluna)
+                        Console.Write('E');
+                    else if (i == saida.Linha && j == saida.Coluna)
+                        Console.Write('S');
+                    else
+                        Console.Write(caverna[i, j] == 0 ? '#' : '.');
                 }
                 Console.WriteLine();
             }
+
+            
         }
 
         public int ContarVizinhos(int[,] mapa, int x, int y, int altura, int largura)
