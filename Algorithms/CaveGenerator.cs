@@ -5,19 +5,22 @@ namespace GeradorDeLabirintos.Algorithms
 {
     public class CaveGenerator
     {
-        public void Gerar(int largura, int altura)
+        private Random rand = new Random(); // Gerador de números aleatórios reutilizado
+        public ResultadoLabirinto Gerar(int largura, int altura)
         {
-            int[,] caverna = new int[altura, largura]; // criando a Matriz
-            Random rand = new Random();
+            int[,] caverna = new int[altura, largura]; // Criando a matriz da caverna (0 = parede, 1 = caminho)
 
+            // Preenchimento inicial aleatório
+            // Aproximadamente 50% parede e 50% caminho
             for (int i = 0; i < altura; i++)
             {
                 for (int j = 0; j < largura; j++)
                 {
-                    caverna[i, j] = (rand.Next(100) < 60) ? 0 : 1;
+                    caverna[i, j] = (rand.Next(100) < 50) ? 0 : 1;
                 }
             }
 
+            // Exibe o mapa inicial (antes do autômato)
             for (int i = 0; i < altura; i++)
             {
                 for (int j = 0; j < largura; j++)
@@ -27,7 +30,10 @@ namespace GeradorDeLabirintos.Algorithms
                 Console.WriteLine();
             }
 
-            for (int k = 0; k < 6; k++)
+
+             // Aplica o autômato celular algumas vezes
+            // Isso suaviza o mapa, formando regiões mais naturais
+            for (int k = 0; k < 2; k++)
             {
                 caverna = AplicarAutomato(caverna, altura, largura);
             }
@@ -40,7 +46,8 @@ namespace GeradorDeLabirintos.Algorithms
             caverna[entrada.Linha, entrada.Coluna] = 1;
             caverna[saida.Linha, saida.Coluna] = 1;
 
-            Console.WriteLine("Mapa Final\n"); // Mostrando a caverna em sua versão final
+            // Exibe o mapa final com marcação de entrada (E) e saída (S)
+            Console.WriteLine("Mapa Final\n");
             for (int i = 0; i < altura; i++)
             {
                 for (int j = 0; j < largura; j++)
@@ -55,26 +62,37 @@ namespace GeradorDeLabirintos.Algorithms
                 Console.WriteLine();
             }
 
-            
+            // Retorna o resultado completo (mapa + posições)
+            return new ResultadoLabirinto
+            {
+                Mapa = caverna,
+                Entrada = entrada,
+                Saida = saida
+            };
         }
 
         public int ContarVizinhos(int[,] mapa, int x, int y, int altura, int largura)
         {
             int contador = 0
             ;
+
+            // Percorre os 8 vizinhos ao redor da célula
             for (int i = -1; i <= 1; i++)
             {
                 for (int j = -1; j <= 1; j++)
-                {
+                {   
+
                     if (i == 0 && j == 0) continue; // ignora a própria célula
 
                     int nx = x + i;
                     int ny = y + j;
 
+                    // Se estiver fora do mapa, considera como parede
                     if (nx < 0 || ny < 0 || nx >= altura || ny >= largura)
                     {
                         contador++;
                     }
+                    // Se for parede (0), incrementa contador
                     else if (mapa[nx, ny] == 0)
                     {
                         contador++;
@@ -94,7 +112,9 @@ namespace GeradorDeLabirintos.Algorithms
                 for (int j = 0; j < largura; j++)
                 {
                     int vizinhos = ContarVizinhos(mapa, i, j, altura, largura);
-
+                    
+                    // Regra:
+                    // Se tiver muitos vizinhos parede, vira parede
                     if (vizinhos >= 5)
                     {
                         novoMapa[i, j] = 0;
