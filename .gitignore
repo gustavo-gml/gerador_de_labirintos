@@ -55,3 +55,4 @@ desktop.ini
 ## --- Outros ---
 .cache/
 .ionide/
+*.txt
