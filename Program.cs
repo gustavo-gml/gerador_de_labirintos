@@ -7,7 +7,11 @@ class Program
         if (args.Length < 3)
         {
             Console.WriteLine("Erro! Use: dotnet run -- <tipo> <largura> <altura>");
-            Console.WriteLine("Exemplo: dotnet run -- caverna 60 30");
+
+            Console.WriteLine("Exemplo: dotnet run -- labirinto 60 30");
+
+            Console.WriteLine("Exemplo: dotnet run -- caverna 60 30 valido");
+
             return; // Encerra o programa se faltarem dados
         }
 
