@@ -1,54 +1,71 @@
-using GeradorDeLabirintos.Algorithms;
+namespace GeradorDeLabirintos.Validation;
 using System.Collections.Generic;
-public class PathValidator
+
+public static class PathValidator
 {
-    public bool ExisteCaminho(int[,] mapa, Posicao inicio, Posicao fim)
+    /// <summary>
+    /// Verifica usando Busca em Largura (BFS) se existe uma rota viável entre 'E' e 'S'.
+    /// </summary>
+    public static bool HasValidPath(char[,] maze)
     {
-        int altura = mapa.GetLength(0);
-        int largura = mapa.GetLength(1);
-        
-        // Marca quais posições já foram visitadas
-        bool[,] visitado = new bool[altura, largura];
+        int height = maze.GetLength(0);
+        int width = maze.GetLength(1);
 
-        // Fila
-        Queue<Posicao> fila = new Queue<Posicao>();
-        fila.Enqueue(inicio);
-        visitado[inicio.Linha, inicio.Coluna] = true;
+        int startX = -1, startY = -1;
+        int endX = -1, endY = -1;
 
-        // Movimentos possíveis (cima, baixo, esquerda, direita)
-        int[] dx = { -1, 1, 0, 0 };
-        int[] dy = { 0, 0, -1, 1 };
-
-        while (fila.Count > 0)
+        // 1. Encontra automaticamente a Entrada (E) e Saída (S) na matriz
+        for (int y = 0; y < height; y++)
         {
-            Posicao atual = fila.Dequeue();
-
-            // Se chegou ao destino, existe caminho
-            if (atual.Linha == fim.Linha && atual.Coluna == fim.Coluna)
+            for (int x = 0; x < width; x++)
             {
-                return true;
+                if (maze[y, x] == 'E') { startX = x; startY = y; }
+                if (maze[y, x] == 'S') { endX = x; endY = y; }
             }
+        }
 
-            // Explora os vizinhos
+        // Se por algum erro a matriz não tiver 'E' ou 'S', já bloqueia
+        if (startX == -1 || endX == -1) return false;
+
+        // 2. Configura a Busca em Largura (BFS)
+        bool[,] visited = new bool[height, width];
+        Queue<(int x, int y)> queue = new Queue<(int x, int y)>();
+
+        queue.Enqueue((startX, startY));
+        visited[startY, startX] = true;
+
+        // Vetores de movimento: Cima, Baixo, Esquerda, Direita
+        int[] dx = { 0, 0, -1, 1 };
+        int[] dy = { -1, 1, 0, 0 };
+
+        // 3. Executa o BFS
+        while (queue.Count > 0)
+        {
+            var (cx, cy) = queue.Dequeue();
+
+            // Chegou no destino?
+            if (cx == endX && cy == endY) return true;
+
+            // Explora os 4 vizinhos
             for (int i = 0; i < 4; i++)
             {
-                int nx = atual.Linha + dx[i];
-                int ny = atual.Coluna + dy[i];
+                int nx = cx + dx[i];
+                int ny = cy + dy[i];
 
-                // Verifica se está dentro do mapa
-                if (nx >= 0 && ny >= 0 && nx < altura && ny < largura)
-                {   
-                    // Só anda em células de caminho (1) e não visitadas
-                    if (!visitado[nx, ny] && mapa[nx, ny] == 1)
+                // Verifica se está dentro dos limites da matriz
+                if (nx >= 0 && ny >= 0 && nx < width && ny < height)
+                {
+                    // Anda apenas por caminhos livres ('1') ou pela Saída ('S')
+                    if (!visited[ny, nx] && (maze[ny, nx] == '1' || maze[ny, nx] == 'S'))
                     {
-                        fila.Enqueue(new Posicao(nx, ny));
-                        visitado[nx, ny] = true;
+                        visited[ny, nx] = true;
+                        queue.Enqueue((nx, ny));
                     }
                 }
             }
-
         }
-         // Se esgotou a busca, não existe caminho
+
+        // Se a fila esvaziou e não retornou true, é porque o caminho está bloqueado
         return false;
     }
 }

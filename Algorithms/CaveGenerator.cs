@@ -1,132 +1,157 @@
+namespace GeradorDeLabirintos.Algorithms;
+
 using System;
+using System.Collections.Generic;
 
-
-namespace GeradorDeLabirintos.Algorithms
+public class CaveGenerator
 {
-    public class CaveGenerator
+    private int width, height;
+    private char[,] maze;
+
+    private bool validade;
+    private Random rng = new Random();
+
+    public CaveGenerator(int width, int height, bool validade)
     {
-        private Random rand = new Random(); // Gerador de números aleatórios reutilizado
-        public ResultadoLabirinto Gerar(int largura, int altura)
+        this.width = width;
+        this.height = height;
+        this.validade = validade;
+        this.maze = new char[height, width];
+    }
+
+    public void Generate()
+    {
+
+        while (true)
         {
-            int[,] caverna = new int[altura, largura]; // Criando a matriz da caverna (0 = parede, 1 = caminho)
-
-            // Preenchimento inicial aleatório
-            // Aproximadamente 50% parede e 50% caminho
-            for (int i = 0; i < altura; i++)
+            // 1. Preenchimento inicial aleatório (50% parede '0', 50% caminho '1')
+            for (int y = 0; y < height; y++)
             {
-                for (int j = 0; j < largura; j++)
+                for (int x = 0; x < width; x++)
                 {
-                    caverna[i, j] = (rand.Next(100) < 50) ? 0 : 1;
+                    maze[y, x] = (rng.Next(100) < 50) ? '0' : '1';
                 }
             }
 
-            // Exibe o mapa inicial (antes do autômato)
-            for (int i = 0; i < altura; i++)
-            {
-                for (int j = 0; j < largura; j++)
-                {
-                    Console.Write(caverna[i, j] == 0 ? '#' : '.');
-                }
-                Console.WriteLine();
-            }
-
-
-             // Aplica o autômato celular algumas vezes
-            // Isso suaviza o mapa, formando regiões mais naturais
+            // 2. Aplica o autômato celular (Aumentado em iterações)
             for (int k = 0; k < 2; k++)
             {
-                caverna = AplicarAutomato(caverna, altura, largura);
+                AplicarAutomato();
             }
 
-            // definir entrada e saída
-            Posicao entrada = new Posicao(1, 1);
-            Posicao saida = new Posicao(altura - 2, largura - 2);
+            // 3. Define Entrada (E) e Saída (S) de forma aleatória
+            SetRandomEntryAndExit();
 
-            // garantir que são caminhos
-            caverna[entrada.Linha, entrada.Coluna] = 1;
-            caverna[saida.Linha, saida.Coluna] = 1;
-
-            // Exibe o mapa final com marcação de entrada (E) e saída (S)
-            Console.WriteLine("Mapa Final\n");
-            for (int i = 0; i < altura; i++)
+            //Gera algoritimo valido ou invalido
+            bool status = GeradorDeLabirintos.Validation.PathValidator.HasValidPath(maze);
+            if(status == validade)
             {
-                for (int j = 0; j < largura; j++)
+                break;
+            }
+        }
+    }
+
+    private void AplicarAutomato()
+    {
+        char[,] novoMapa = new char[height, width];
+
+        for (int y = 0; y < height; y++)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                int vizinhosParede = ContarVizinhos(x, y);
+
+                // Regra do Autômato Celular:
+                // Se tiver 5 ou mais vizinhos que são parede, vira/continua parede.
+                if (vizinhosParede >= 5)
                 {
-                    if (i == entrada.Linha && j == entrada.Coluna)
-                        Console.Write('E');
-                    else if (i == saida.Linha && j == saida.Coluna)
-                        Console.Write('S');
-                    else
-                        Console.Write(caverna[i, j] == 0 ? '#' : '.');
+                    novoMapa[y, x] = '0';
                 }
-                Console.WriteLine();
+                else
+                {
+                    novoMapa[y, x] = '1';
+                }
             }
-
-            // Retorna o resultado completo (mapa + posições)
-            return new ResultadoLabirinto
-            {
-                Mapa = caverna,
-                Entrada = entrada,
-                Saida = saida
-            };
         }
 
-        public int ContarVizinhos(int[,] mapa, int x, int y, int altura, int largura)
+        // Atualiza o mapa principal
+        maze = novoMapa;
+    }
+
+    private int ContarVizinhos(int x, int y)
+    {
+        int contador = 0;
+
+        for (int i = -1; i <= 1; i++)
         {
-            int contador = 0
-            ;
-
-            // Percorre os 8 vizinhos ao redor da célula
-            for (int i = -1; i <= 1; i++)
+            for (int j = -1; j <= 1; j++)
             {
-                for (int j = -1; j <= 1; j++)
-                {   
+                if (i == 0 && j == 0) continue; // Ignora a própria célula
 
-                    if (i == 0 && j == 0) continue; // ignora a própria célula
+                int nx = x + j;
+                int ny = y + i;
 
-                    int nx = x + i;
-                    int ny = y + j;
-
-                    // Se estiver fora do mapa, considera como parede
-                    if (nx < 0 || ny < 0 || nx >= altura || ny >= largura)
-                    {
-                        contador++;
-                    }
-                    // Se for parede (0), incrementa contador
-                    else if (mapa[nx, ny] == 0)
-                    {
-                        contador++;
-                    }
-
+                // Fora dos limites é considerado parede (ajuda a fechar as bordas do mapa)
+                if (nx < 0 || ny < 0 || nx >= width || ny >= height)
+                {
+                    contador++;
+                }
+                else if (maze[ny, nx] == '0')
+                {
+                    contador++;
                 }
             }
-            return contador;
+        }
+        return contador;
+    }
+
+    private void SetRandomEntryAndExit()
+    {
+        // Mesma lógica utilizada no MazeGenerator
+        List<(int x, int y)> validPaths = new List<(int x, int y)>();
+
+        for (int y = 0; y < height; y++)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                if (maze[y, x] == '1')
+                {
+                    validPaths.Add((x, y));
+                }
+            }
         }
 
-        public int[,] AplicarAutomato(int[,] mapa, int altura, int largura)
+        if (validPaths.Count >= 2)
         {
-            int[,] novoMapa = new int[altura, largura];
+            int entryIndex = rng.Next(validPaths.Count);
+            var entry = validPaths[entryIndex];
+            maze[entry.y, entry.x] = 'E';
 
-            for (int i = 0; i < altura; i++)
+            validPaths.RemoveAt(entryIndex);
+
+            int exitIndex = rng.Next(validPaths.Count);
+            var exit = validPaths[exitIndex];
+            maze[exit.y, exit.x] = 'S';
+        }
+    }
+
+    public char[,] GetMaze()
+    {
+        return maze;
+    }
+
+    public void Display()
+    {
+        for (int y = 0; y < height; y++)
+        {
+            for (int x = 0; x < width; x++)
             {
-                for (int j = 0; j < largura; j++)
-                {
-                    int vizinhos = ContarVizinhos(mapa, i, j, altura, largura);
-                    
-                    // Regra:
-                    // Se tiver muitos vizinhos parede, vira parede
-                    if (vizinhos >= 5)
-                    {
-                        novoMapa[i, j] = 0;
-                    }
-                    else
-                    {
-                        novoMapa[i, j] = 1;
-                    }
-                }
+                // Substituindo visualmente só no console para ficar mais legível, mas no txt vai como '0' e '1'
+                if (maze[y, x] == '0') Console.Write("# ");
+                else if (maze[y, x] == '1') Console.Write(". ");
+                else Console.Write(maze[y, x] + " ");
             }
-
-            return novoMapa;
+            Console.WriteLine();
         }
     }
 }
