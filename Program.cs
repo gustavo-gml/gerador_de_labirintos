@@ -1,8 +1,5 @@
 ﻿using GeradorDeLabirintos.Algorithms;
-
-
-
-
+using GeradorDeLabirintos.IO;
 class Program
 {
     public static void Main(String[] args)
@@ -18,86 +15,34 @@ class Program
             return; // Encerra o programa se faltarem dados
         }
 
-        // Pegas os argumentos de entrada 
-        String tipoAlgoritmo = args[0].ToLower();
+        // Pega os argumentos de entrada 
+        string tipoAlgoritmo = args[0];
         int largura = int.Parse(args[1]);
         int altura = int.Parse(args[2]);
-
-        bool queroValido = true;
-
-        if (args.Length >= 4)
-        {
-            String modo = args[3].ToLower().Trim();
-
-            if (modo == "valido")
-                queroValido = true;
-            else if (modo == "invalido")
-                queroValido = false;
-            else
-                Console.WriteLine("Use 'valido' ou 'invalido'");
-        }
 
         string nomeArquivo = $"labirinto_{largura}x{altura}_{DateTime.Now:yyyyMMdd_HHmmss}.txt";
 
         Console.WriteLine($"Gerando labirinto do tipo '{tipoAlgoritmo}' com tamanho {largura}x{altura}...");
 
-        switch (tipoAlgoritmo)
+        switch (tipoAlgoritmo.ToLower())
         {
             case "perfeito":
-                if (!queroValido)
-                {
-                    Console.WriteLine("Labirinto perfeito é sempre válido. Ignorando 'invalido'.");
-                }
-
                 MazeGenerator labirinto = new MazeGenerator(largura, altura);
                 labirinto.Generate();
                 MazeExporter.ExportToTxt(labirinto.GetMaze(), nomeArquivo);
+                //labirinto.Display(); não usual para labirintos massivos 
                 break;
 
-            case "caverna":
-                CaveGenerator gerador = new CaveGenerator();
-                PathValidator validador = new PathValidator();
-                MazeExporter exporter = new MazeExporter();
 
-                ResultadoLabirinto resultado;
-                bool temCaminho;
-
-                int tentativas = 0;
-                int maxTentativas = 100;
-
-                do
-                {
-                    resultado = gerador.Gerar(largura, altura);
-
-                    temCaminho = validador.ExisteCaminho(
-                        resultado.Mapa,
-                        resultado.Entrada,
-                        resultado.Saida
-                    );
-
-                    tentativas++;
-
-                } while (temCaminho != queroValido && tentativas < maxTentativas);
-
-                if (tentativas == maxTentativas)
-                {
-                    Console.WriteLine("Não foi possível gerar o tipo desejado.");
-                }
-                else
-                {
-                    Console.WriteLine(temCaminho ? "Mapa VÁLIDO" : "Mapa INVÁLIDO");
-
-                    exporter.ExportToTxt(resultado.Mapa, nomeArquivo);
-
-                    Console.WriteLine("Caverna salva com sucesso!");
-                }
-
+            //Lógicas de chamada para autômato celular 
+            case "caverna": 
+                Console.WriteLine("Em desenvolvimento...");
                 break;
 
             default:
-                Console.WriteLine($"Erro: Tipo '{tipoAlgoritmo}' desconhecido.");
-                Console.WriteLine("Opções: 'perfeito' ou 'caverna'.");
-                break;
+            Console.WriteLine($"Erro: Tipo de labirinto '{tipoAlgoritmo}' desconhecido.");
+            Console.WriteLine("Opções válidas: 'perfeito' ou 'caverna'.");
+            break;
         }
     }
 }
